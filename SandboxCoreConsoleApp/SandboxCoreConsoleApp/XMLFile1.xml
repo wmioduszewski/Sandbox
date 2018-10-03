@@ -1,0 +1,27 @@
+﻿<?xml version="1.0" encoding="utf-8" ?> 
+<DataSources isList="true" count="1">
+      <Report_TicketA4 Ref="3" type="Stimulsoft.Report.Dictionary.StiSqlSource" isKey="true">
+        <Alias>Report_TicketA4</Alias>
+        <Columns isList="true" count="10">
+          <value>BoardingAddress,System.String</value>
+          <value>BoardingCity,System.String</value>
+          <value>BoatName,System.String</value>
+          <value>BookingNumber,System.Int32</value>
+          <value>CustomerName,System.String</value>
+          <value>Price,System.Decimal</value>
+          <value>StartDateTime,System.DateTime</value>
+          <value>TicketNumber,System.String</value>
+          <value>TourName,System.String</value>
+          <value>TourTypeName,System.String</value>
+        </Columns>
+        <CommandTimeout>30</CommandTimeout>
+        <Dictionary isRef="1" />
+        <Name>Report_TicketA4</Name>
+        <NameInSource>Connection</NameInSource>
+        <Parameters isList="true" count="1">
+          <value>_x0040_TourPlanningBookingId,_x0033_1,8,0</value>
+        </Parameters>
+        <SqlCommand>Report_TicketA4</SqlCommand>
+        <Type>StoredProcedure</Type>
+      </Report_TicketA4>
+    </DataSources>
