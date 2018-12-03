@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
+using System.Text.RegularExpressions;
 
 namespace SandboxCoreConsoleApp
 {
@@ -9,51 +11,79 @@ namespace SandboxCoreConsoleApp
     {
         private static string filepath = @"C:\Users\WojciechMioduszewski\Desktop\input.txt";
 
+        static List<Rectangle> rectanles = new List<Rectangle>();
+
         static void Main(string[] args)
         {
-            decimal two =0;
-            decimal three=0;
-
-            List<string> lines = new List<string>();
-
+            int size = 1100;
+            int [,] board= new int [size,size];
             using (var stream = new StreamReader(filepath))
             {
                 while (!stream.EndOfStream)
                 {
                     var line = stream.ReadLine();
-                    lines.Add(line);
+                    var rect = new Rectangle(line);
+                    rectanles.Add(rect);
+
+                    ApplyRectOnBoard(board, rect);
                 }
             }
 
-            Count(lines);
+            foreach (var rect in rectanles)
+            {
+                for (int i = rect.X; i < rect.X + rect.Width; i++)
+                {
+                    if(rect.NotTheOne)
+                        break;
+                    for (int j = rect.Y; j < rect.Y + rect.Height; j++)
+                    {
+                        if (board[i, j] != 1)
+                        {
+                            rect.NotTheOne = true;
+                            break;
+                        }
+                            
+                    }
+                }
+            }
+            
+
+            Console.WriteLine(rectanles.First(x=>!x.NotTheOne).Id);
 
             Console.WriteLine("Complete.");
             Console.ReadKey();
         }
 
-        static void Count(List<string> lines)
+        private static void ApplyRectOnBoard(int[,] board, Rectangle rect)
         {
-            foreach (var left in lines)
+            for (int i = rect.X; i < rect.X + rect.Width; i++)
             {
-                foreach (var right in lines)
+                for (int j = rect.Y; j < rect.Y + rect.Height; j++)
                 {
-                    var res = Compare(left, right);
-                    if(res == 1)
-                        Console.WriteLine(left + "\r\n" + right + "\r\n\r\n");
+                    board[i, j]++;
                 }
             }
         }
 
-        static int Compare(string left, string right)
+        class Rectangle
         {
-            int diff = 0;
-            for (int i = 0; i < left.Length; i++)
+            public int X { get; set; }
+            public int Y { get; set; }
+            public int Width { get; set; }
+            public int Height { get; set; }
+            public int Id { get; set; }
+            public bool NotTheOne { get; set; }
+
+            public Rectangle(string line)
             {
-                if (left[i] != right[i])
-                    diff++;
+                var matches = Regex.Match(line, "#(?<id>\\d+) @ (?<x>\\d+),(?<y>\\d+): (?<w>\\d+)x(?<h>\\d+)");
+                X = Convert.ToInt32(matches.Groups["x"].Captures[0].Value);
+                Y = Convert.ToInt32(matches.Groups["y"].Captures[0].Value);
+                Width = Convert.ToInt32(matches.Groups["w"].Captures[0].Value);
+                Height = Convert.ToInt32(matches.Groups["h"].Captures[0].Value);
+                Id = Convert.ToInt32(matches.Groups["id"].Captures[0].Value);
             }
 
-            return diff;
         }
 
 
