@@ -1,9 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Net;
-using System.Text;
-using System.Text.RegularExpressions;
+using System.Linq;
 
 namespace SandboxCoreConsoleApp
 {
@@ -13,29 +11,49 @@ namespace SandboxCoreConsoleApp
 
         static void Main(string[] args)
         {
-            decimal sum = 0m;
-            var dict = new HashSet<decimal> { sum };
-            int rounds = 1;
-            bool res = true;
-            while (res)
+            decimal two =0;
+            decimal three=0;
+
+            List<string> lines = new List<string>();
+
+            using (var stream = new StreamReader(filepath))
             {
-                using (var reader = new StreamReader(filepath))
+                while (!stream.EndOfStream)
                 {
-                    rounds++;
-                    while (!reader.EndOfStream)
-                    {
-                        sum += Convert.ToDecimal(reader.ReadLine());
-                        //Console.WriteLine("skladnik " + sum);
-                        res = dict.Add(sum);
-                        if(!res) break;
-                    }
+                    var line = stream.ReadLine();
+                    lines.Add(line);
                 }
             }
 
-            Console.WriteLine(sum);
-            Console.WriteLine(rounds);
+            Count(lines);
 
+            Console.WriteLine("Complete.");
             Console.ReadKey();
+        }
+
+        static void Count(List<string> lines)
+        {
+            foreach (var left in lines)
+            {
+                foreach (var right in lines)
+                {
+                    var res = Compare(left, right);
+                    if(res == 1)
+                        Console.WriteLine(left + "\r\n" + right + "\r\n\r\n");
+                }
+            }
+        }
+
+        static int Compare(string left, string right)
+        {
+            int diff = 0;
+            for (int i = 0; i < left.Length; i++)
+            {
+                if (left[i] != right[i])
+                    diff++;
+            }
+
+            return diff;
         }
 
 
