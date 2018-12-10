@@ -87,7 +87,23 @@ namespace SandboxCoreConsoleApp
             var max = guardMinutes[guard].Max();
             int guardMinute = Array.IndexOf(guardMinutes[guard], max);
 
+            int maxofAll = 0;
+            int guardMaxOfAll=0;
+            int minuteMax = 0;
+
+            foreach (var blubi in guardMinutes)
+            {
+                var localMax = guardMinutes[blubi.Key].Max();
+                if (localMax > maxofAll)
+                {
+                    maxofAll = localMax;
+                    guardMaxOfAll = blubi.Key;
+                    minuteMax = Array.IndexOf(blubi.Value, maxofAll);
+                }
+            }
+
             Console.WriteLine(guard * guardMinute);
+            Console.WriteLine(guardMaxOfAll * minuteMax);
         }
 
         class Record
