@@ -11,77 +11,97 @@ namespace SandboxCoreConsoleApp
     {
         private static string filepath = @"C:\Users\WojciechMioduszewski\Desktop\input.txt";
 
-        static List<Rectangle> rectanles = new List<Rectangle>();
+        static List<Record> records = new List<Record>();
 
         static void Main(string[] args)
         {
             int size = 1100;
-            int [,] board= new int [size,size];
+            int[,] board = new int[size, size];
             using (var stream = new StreamReader(filepath))
             {
                 while (!stream.EndOfStream)
                 {
                     var line = stream.ReadLine();
-                    var rect = new Rectangle(line);
-                    rectanles.Add(rect);
-
-                    ApplyRectOnBoard(board, rect);
+                    var rect = new Record(line);
+                    records.Add(rect);
                 }
             }
 
-            foreach (var rect in rectanles)
-            {
-                for (int i = rect.X; i < rect.X + rect.Width; i++)
-                {
-                    if(rect.NotTheOne)
-                        break;
-                    for (int j = rect.Y; j < rect.Y + rect.Height; j++)
-                    {
-                        if (board[i, j] != 1)
-                        {
-                            rect.NotTheOne = true;
-                            break;
-                        }
-                            
-                    }
-                }
-            }
-            
+            records = records.OrderBy(x => x.DateTime).ToList();
+            AnalyzeRecords();
 
-            Console.WriteLine(rectanles.First(x=>!x.NotTheOne).Id);
 
             Console.WriteLine("Complete.");
             Console.ReadKey();
         }
 
-        private static void ApplyRectOnBoard(int[,] board, Rectangle rect)
+        private static void AnalyzeRecords()
         {
-            for (int i = rect.X; i < rect.X + rect.Width; i++)
+            var guards = new Dictionary<int, int>();
+            Dictionary<int, int[]> guardMinutes = new Dictionary<int, int[]>();
+            int guardId = -1;
+            int minute = 0;
+            foreach (var record in records)
             {
-                for (int j = rect.Y; j < rect.Y + rect.Height; j++)
+
+                var matches = Regex.Match(record.Message, "Guard #(?<id>\\d+) begins shift");
+
+                if (matches.Success)
                 {
-                    board[i, j]++;
+                    guardId = Convert.ToInt32(matches.Groups["id"].Value);
+                    minute = 0;
+                }
+
+                if (record.Message.Contains("asleep"))
+                {
+                    minute = record.DateTime.Hour == 23 ? 0 : record.DateTime.Minute;
+                }
+
+                if (record.Message.Contains("wakes"))
+                {
+                    if (guards.ContainsKey(guardId))
+                    {
+                        guards[guardId] += record.DateTime.Minute - minute;
+
+                        for (int i = minute; i < record.DateTime.Minute; i++)
+                        {
+                            guardMinutes[guardId][i] += 1;
+                        }
+                    }
+                    else
+                    {
+                        guards.Add(guardId, record.DateTime.Minute - minute);
+                        guardMinutes.Add(guardId, new int[61]);
+
+                        for (int i = minute; i < record.DateTime.Minute; i++)
+                        {
+                            guardMinutes[guardId][i] += 1;
+                        }
+
+                    }
+                    minute = 0;
                 }
             }
+
+            var guard = guards.OrderByDescending(x => x.Value).First().Key;
+            var max = guardMinutes[guard].Max();
+            int guardMinute = Array.IndexOf(guardMinutes[guard], max);
+
+            Console.WriteLine(guard * guardMinute);
         }
 
-        class Rectangle
+        class Record
         {
-            public int X { get; set; }
-            public int Y { get; set; }
-            public int Width { get; set; }
-            public int Height { get; set; }
-            public int Id { get; set; }
-            public bool NotTheOne { get; set; }
+            public DateTime DateTime { get; set; }
+            //public int GuardId { get; set; }
+            public string Message { get; set; }
 
-            public Rectangle(string line)
+            public Record(string line)
             {
-                var matches = Regex.Match(line, "#(?<id>\\d+) @ (?<x>\\d+),(?<y>\\d+): (?<w>\\d+)x(?<h>\\d+)");
-                X = Convert.ToInt32(matches.Groups["x"].Captures[0].Value);
-                Y = Convert.ToInt32(matches.Groups["y"].Captures[0].Value);
-                Width = Convert.ToInt32(matches.Groups["w"].Captures[0].Value);
-                Height = Convert.ToInt32(matches.Groups["h"].Captures[0].Value);
-                Id = Convert.ToInt32(matches.Groups["id"].Captures[0].Value);
+                //var matches = Regex.Match(line, "#(?<id>\\d+) @ (?<x>\\d+),(?<y>\\d+): (?<w>\\d+)x(?<h>\\d+)");
+                var matches = Regex.Match(line, "\\[(?<datetime>\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2})\\] (?<rest>.*)");
+                DateTime = DateTime.Parse(matches.Groups["datetime"].Value);
+                Message = matches.Groups["rest"].Captures[0].Value;
             }
 
         }
